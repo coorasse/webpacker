@@ -47,7 +47,26 @@ class RakeTasksTest < Minitest::Test
                     "Expected only production dependencies to be installed"
   end
 
+  def test_rake_webpacker_install_jest
+    within_dump_test_app do
+      `bundle exec rake webpacker:install:jest`
+      assert_includes test_app_dev_dependencies, "jest"
+      assert_includes installed_node_module_names, "jest"
+    end
+  end
+
   private
+
+    def within_dump_test_app
+      Webpacker.with_node_env("development") do
+        Dir.chdir(test_app_path) do
+          yield
+        end
+      end
+      system('rm `git ls-files --exclude-standard -o`')
+      system(`git checkout #{test_app_path}`)
+    end
+
     def test_app_path
       File.expand_path("test_app", __dir__)
     end
